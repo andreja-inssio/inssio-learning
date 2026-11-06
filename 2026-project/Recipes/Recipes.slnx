@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="RecipeAPI/RecipeAPI.csproj" />
   <Project Path="Recipes/Recipes.csproj" />
+  <Project Path="RecipeShared/RecipeShared.csproj" />
 </Solution>

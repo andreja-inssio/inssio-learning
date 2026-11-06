@@ -5,8 +5,8 @@ description: "Use when planning or changing Recipe Organizer architecture, proje
 # Recipe Organizer architecture
 
 - Build a simple, single-user recipe organizer. Do not introduce authentication, an AI service, or enterprise architecture unless requested.
-- The existing `Recipes` project is a standalone Blazor WebAssembly client. The API, shared contracts, and database layers are planned, not yet implemented.
-- When adding the backend, use `Recipes.Api` for ASP.NET Core endpoints and EF Core data access, and `Recipes.Shared` for request and response DTOs plus shared input validation.
+- The `Recipes` project is a standalone Blazor WebAssembly client. `RecipeAPI` is an ASP.NET Core Minimal API project, and `RecipeShared` is a .NET class library referenced by both. EF Core entities and `RecipeDbContext` are implemented; recipe endpoints, shared DTOs, and migrations are not yet implemented.
+- Use `RecipeAPI` for ASP.NET Core Minimal API endpoints and EF Core data access, and `RecipeShared` for request and response DTOs plus shared input validation.
 - Keep dependencies one-way: the client and API may reference shared contracts; shared contracts must not reference the client, API, or EF Core.
 - Keep EF Core entities, `DbContext`, migrations, connection strings, and database credentials on the server. Never access the database directly from WASM.
 - Use SQL Server for EF Core temporal-table support.

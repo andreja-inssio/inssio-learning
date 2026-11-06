@@ -4,6 +4,8 @@ description: "Use when designing Recipe Organizer EF Core entities, relationship
 
 # EF Core persistence
 
+- Use `RecipeAPI/Data/RecipeDbContext.cs` and entities in `RecipeAPI/Entities`. String length limits are shared in `RecipeShared/RecipeValidationLimits.cs`.
+- The `Recipes` connection string defaults to Windows SQL Server LocalDB for development; override it through configuration for other environments. Database creation and upgrades require migrations.
 - Keep the EF Core model and configuration in the server project. Use a scoped `DbContext` and asynchronous database operations.
 - Define `Recipe` with `Id`, `Name`, `Description`, `Instructions`, `PreparationMinutes`, `Servings`, and `CategoryId`.
 - Define `Ingredient` and `Category` with `Id` and `Name`.

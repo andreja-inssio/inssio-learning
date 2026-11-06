@@ -1,6 +1,6 @@
 ---
 description: "Use when writing Recipe Organizer C# code, shared contracts, Razor code-behind, or automated tests."
-applyTo: "**/Recipes/**/*.cs,**/Recipes.Api/**/*.cs,**/Recipes.Shared/**/*.cs"
+applyTo: "**/Recipes/**/*.cs,**/RecipeAPI/**/*.cs,**/RecipeShared/**/*.cs"
 ---
 
 # Coding conventions

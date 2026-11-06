@@ -4,7 +4,7 @@ description: "Use when implementing Recipe Organizer ASP.NET Core API endpoints,
 
 # API layer
 
-- These rules describe the planned server API; do not assume endpoints already exist.
+- `RecipeAPI` uses Minimal APIs and currently contains only the template weather forecast endpoint. These rules describe the planned recipe endpoints; do not assume they already exist.
 - Keep endpoint handlers focused: bind DTOs, validate requests, perform the operation, and return a documented response. Follow the endpoint style chosen when the API is created.
 - Expose recipe CRUD and read-only recipe-field history, plus ingredient and category management.
 - Use request and response DTOs to avoid overposting and serialization of EF Core navigation properties.
