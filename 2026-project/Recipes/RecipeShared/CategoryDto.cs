@@ -2,7 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RecipeShared;
 
-public record CategoryDto
+/// <summary>Represents a category returned by the recipes API.</summary>
+public sealed record CategoryDto
 {
     private string? name;
 

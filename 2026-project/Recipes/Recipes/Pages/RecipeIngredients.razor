@@ -1,0 +1,63 @@
+@page "/recipe-ingredients"
+@inject RecipeApiClient Api
+@inject IJSRuntime JS
+
+<PageTitle>Recipe ingredients</PageTitle>
+
+<div class="mb-4">
+    <h1>Recipe ingredients</h1>
+    <p class="text-secondary mb-0">Manage ingredient quantities and units for each recipe.</p>
+</div>
+
+<ApiFeedback Error="@error" Success="@success" />
+
+@if (recipes is null || ingredients is null || links is null)
+{
+    <p>Loading recipe ingredients...</p>
+}
+else
+{
+    <section class="card mb-4">
+        <div class="card-body">
+            <h2 class="h4">@(selected is null ? "Add an ingredient to a recipe" : "Edit association")</h2>
+            @if (recipes.Count == 0 || ingredients.Count == 0)
+            {
+                <p class="text-secondary">Add a recipe and an ingredient before creating an association.</p>
+            }
+            else
+            {
+                <RecipeIngredientForm @key="selected is null ? 0 : HashCode.Combine(selected.RecipeId, selected.IngredientId)"
+                                      Recipes="recipes" Ingredients="ingredients" InitialValue="selected"
+                                      OnSave="SaveAsync" OnCancel="CancelEdit" />
+            }
+        </div>
+    </section>
+
+    <h2 class="h4">All recipe ingredients</h2>
+    @if (links.Count == 0)
+    {
+        <p class="text-secondary">No recipe ingredients yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead><tr><th>Recipe</th><th>Ingredient</th><th>Quantity</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                    @foreach (var link in links)
+                    {
+                        <tr>
+                            <td>@RecipeName(link.RecipeId)</td>
+                            <td>@IngredientName(link.IngredientId)</td>
+                            <td>@link.Quantity @link.Unit</td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(link)">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteAsync(link)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}

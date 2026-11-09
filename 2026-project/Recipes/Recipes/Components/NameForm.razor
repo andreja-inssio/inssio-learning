@@ -1,0 +1,14 @@
+<EditForm Model="Model" OnValidSubmit="SaveAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label class="form-label" for="entity-name">Name</label>
+        <InputText id="entity-name" class="form-control" @bind-Value="Model.Name" />
+        <ValidationMessage For="@(() => Model.Name)" />
+    </div>
+    <button class="btn btn-primary" type="submit">@SubmitText</button>
+    @if (IsEditing)
+    {
+        <button class="btn btn-outline-secondary ms-2" type="button" @onclick="CancelAsync">Cancel</button>
+    }
+</EditForm>

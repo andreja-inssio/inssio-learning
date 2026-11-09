@@ -1,0 +1,58 @@
+@page "/categories"
+@inject RecipeApiClient Api
+@inject IJSRuntime JS
+
+<PageTitle>Categories</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Categories</h1>
+        <p class="text-secondary mb-0">Organize recipes by category.</p>
+    </div>
+</div>
+
+<ApiFeedback Error="@error" Success="@success" />
+
+<div class="row g-4">
+    <section class="col-lg-5">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h4">@(selected is null ? "Add a category" : "Edit category")</h2>
+                <NameForm @key="selected?.Id" EntityName="category"
+                          InitialValue="@(selected is null ? null : new NameFormModel { Name = selected.Name ?? "" })"
+                          OnSave="SaveAsync" OnCancel="CancelEdit" />
+            </div>
+        </div>
+    </section>
+    <section class="col-lg-7">
+        <h2 class="h4">All categories</h2>
+        @if (categories is null)
+        {
+            <p>Loading categories...</p>
+        }
+        else if (categories.Count == 0)
+        {
+            <p class="text-secondary">No categories yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead><tr><th>Name</th><th class="text-end">Actions</th></tr></thead>
+                    <tbody>
+                        @foreach (var category in categories)
+                        {
+                            <tr>
+                                <td>@category.Name</td>
+                                <td class="text-end text-nowrap">
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(category)">Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteAsync(category)">Delete</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>

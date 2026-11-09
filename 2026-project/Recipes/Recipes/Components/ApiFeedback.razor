@@ -1,0 +1,8 @@
+@if (!string.IsNullOrWhiteSpace(Error))
+{
+    <div class="alert alert-danger" role="alert">@Error</div>
+}
+else if (!string.IsNullOrWhiteSpace(Success))
+{
+    <div class="alert alert-success" role="status">@Success</div>
+}

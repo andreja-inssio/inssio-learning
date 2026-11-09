@@ -1,25 +1,52 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using RecipeAPI.Data;
+using RecipeAPI.Endpoints;
+using RecipeAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddValidation();
 builder.Services.AddProblemDetails();
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5094", "https://localhost:7066"];
+
+builder.Services.AddCors(options => options.AddPolicy("BlazorClient",
+    policy => policy.WithOrigins(
+            allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddDbContext<RecipeDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Recipes")
         ?? throw new InvalidOperationException("Connection string 'Recipes' is required.")));
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddScoped<IRecipeIngredientService, RecipeIngredientService>();
 
 var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseCors("BlazorClient");
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.MapCategoryEndpoints();
+app.MapIngredientEndpoints();
+app.MapRecipeEndpoints();
+app.MapRecipeIngredientEndpoints();
 
 var summaries = new[]
 {

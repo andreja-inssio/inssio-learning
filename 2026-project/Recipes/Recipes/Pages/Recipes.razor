@@ -1,0 +1,72 @@
+@page "/recipes"
+@inject RecipeApiClient Api
+@inject IJSRuntime JS
+
+<PageTitle>Recipes</PageTitle>
+
+<div class="mb-4">
+    <h1>Recipes</h1>
+    <p class="text-secondary mb-0">Create and maintain recipes and their ingredient lists.</p>
+</div>
+
+<ApiFeedback Error="@error" Success="@success" />
+
+@if (categories is null || ingredients is null || recipes is null)
+{
+    <p>Loading recipes...</p>
+}
+else
+{
+    <section class="card mb-4">
+        <div class="card-body">
+            <h2 class="h4">@(selected is null ? "Add a recipe" : $"Edit: {selected.Name}")</h2>
+            @if (categories.Count == 0 || ingredients.Count == 0)
+            {
+                <p class="text-secondary">Add at least one category and one ingredient before creating a recipe.</p>
+            }
+            else
+            {
+                <RecipeForm @key="selected?.Id" Categories="categories" Ingredients="ingredients"
+                            InitialValue="selected" OnSave="SaveAsync" OnCancel="CancelEdit" />
+            }
+        </div>
+    </section>
+
+    <h2 class="h4">All recipes</h2>
+    @if (recipes.Count == 0)
+    {
+        <p class="text-secondary">No recipes yet.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr><th>Recipe</th><th>Category</th><th>Ingredients</th><th>Time</th><th>Servings</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var recipe in recipes)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@recipe.Name</strong>
+                                @if (!string.IsNullOrWhiteSpace(recipe.Description))
+                                {
+                                    <div class="small text-secondary">@recipe.Description</div>
+                                }
+                            </td>
+                            <td>@CategoryName(recipe.CategoryId)</td>
+                            <td>@IngredientSummary(recipe)</td>
+                            <td>@recipe.PreparationMinutes min</td>
+                            <td>@recipe.Servings</td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(recipe)">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteAsync(recipe)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}

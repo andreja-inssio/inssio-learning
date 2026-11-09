@@ -2,7 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RecipeShared;
 
-public record RecipeDto : IValidatableObject
+/// <summary>Represents a recipe and its ingredient quantities returned by the API.</summary>
+public sealed record RecipeDto : IValidatableObject
 {
     private string? name;
 

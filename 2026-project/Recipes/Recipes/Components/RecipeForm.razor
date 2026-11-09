@@ -1,0 +1,85 @@
+<EditForm Model="Model" OnValidSubmit="SaveAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label class="form-label" for="recipe-name">Name</label>
+            <InputText id="recipe-name" class="form-control" @bind-Value="Model.Name" />
+            <ValidationMessage For="@(() => Model.Name)" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="recipe-category">Category</label>
+            <InputSelect id="recipe-category" class="form-select" @bind-Value="Model.CategoryId">
+                <option value="0">Select a category</option>
+                @foreach (var category in Categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.CategoryId)" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="recipe-preparation">Preparation (minutes)</label>
+            <InputNumber id="recipe-preparation" class="form-control" @bind-Value="Model.PreparationMinutes" />
+            <ValidationMessage For="@(() => Model.PreparationMinutes)" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="recipe-servings">Servings</label>
+            <InputNumber id="recipe-servings" class="form-control" @bind-Value="Model.Servings" />
+            <ValidationMessage For="@(() => Model.Servings)" />
+        </div>
+        <div class="col-12">
+            <label class="form-label" for="recipe-description">Description</label>
+            <InputTextArea id="recipe-description" class="form-control" @bind-Value="Model.Description" />
+            <ValidationMessage For="@(() => Model.Description)" />
+        </div>
+        <div class="col-12">
+            <label class="form-label" for="recipe-instructions">Instructions</label>
+            <InputTextArea id="recipe-instructions" class="form-control" rows="4" @bind-Value="Model.Instructions" />
+            <ValidationMessage For="@(() => Model.Instructions)" />
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+        <h3 class="h5 mb-0">Ingredients</h3>
+        <button class="btn btn-sm btn-outline-primary" type="button" @onclick="AddIngredient">Add ingredient</button>
+    </div>
+    @foreach (var ingredient in Model.Ingredients)
+    {
+        <div class="row g-2 align-items-end mb-3" @key="ingredient">
+            <div class="col-md-5">
+                <label class="form-label">Ingredient</label>
+                <InputSelect class="form-select" @bind-Value="ingredient.IngredientId">
+                    <option value="0">Select an ingredient</option>
+                    @foreach (var option in Ingredients)
+                    {
+                        <option value="@option.Id">@option.Name</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Quantity</label>
+                <InputNumber class="form-control" @bind-Value="ingredient.Quantity" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Unit</label>
+                <InputText class="form-control" @bind-Value="ingredient.Unit" />
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-outline-danger" type="button" aria-label="Remove ingredient"
+                        disabled="@(Model.Ingredients.Count == 1)" @onclick="() => RemoveIngredient(ingredient)">
+                    Remove
+                </button>
+            </div>
+        </div>
+    }
+
+    <ValidationMessage For="@(() => Model.Ingredients)" />
+    <div class="mt-4">
+        <button class="btn btn-primary" type="submit">@SubmitText</button>
+        @if (InitialValue is not null)
+        {
+            <button class="btn btn-outline-secondary ms-2" type="button" @onclick="CancelAsync">Cancel</button>
+        }
+    </div>
+</EditForm>

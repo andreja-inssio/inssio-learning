@@ -2,7 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace RecipeShared;
 
-public record RecipeIngredientDto
+/// <summary>Represents an ingredient quantity and unit associated with a recipe.</summary>
+public sealed record RecipeIngredientDto
 {
     private string? unit;
 

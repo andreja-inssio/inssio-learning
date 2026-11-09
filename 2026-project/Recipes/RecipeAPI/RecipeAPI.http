@@ -1,11 +1,151 @@
 @RecipeAPI_HostAddress = http://localhost:5085
 
-GET {{RecipeAPI_HostAddress}}/weatherforecast/
+### List categories
+GET {{RecipeAPI_HostAddress}}/api/categories
 Accept: application/json
 
-###
+### Get a category
+GET {{RecipeAPI_HostAddress}}/api/categories/1
+Accept: application/json
 
+### Get a missing category
+GET {{RecipeAPI_HostAddress}}/api/categories/9999
+Accept: application/json
+
+### Create a category
+POST {{RecipeAPI_HostAddress}}/api/categories
+Content-Type: application/json
+
+{
+  "name": "Quick meals"
+}
+
+### Replace a category
+PUT {{RecipeAPI_HostAddress}}/api/categories/11
+Content-Type: application/json
+
+{
+  "name": "Weeknight meals"
+}
+
+### Delete an unused category
+DELETE {{RecipeAPI_HostAddress}}/api/categories/11
+
+### List ingredients
+GET {{RecipeAPI_HostAddress}}/api/ingredients
+Accept: application/json
+
+### Get an ingredient
+GET {{RecipeAPI_HostAddress}}/api/ingredients/1
+Accept: application/json
+
+### Get a missing ingredient
+GET {{RecipeAPI_HostAddress}}/api/ingredients/9999
+Accept: application/json
+
+### Create an ingredient
+POST {{RecipeAPI_HostAddress}}/api/ingredients
+Content-Type: application/json
+
+{
+  "name": "Coconut milk"
+}
+
+### Replace an ingredient
+PUT {{RecipeAPI_HostAddress}}/api/ingredients/31
+Content-Type: application/json
+
+{
+  "name": "Oat milk"
+}
+
+### Delete an unused ingredient
+DELETE {{RecipeAPI_HostAddress}}/api/ingredients/31
+
+### List recipes
+GET {{RecipeAPI_HostAddress}}/api/recipes
+Accept: application/json
+
+### Get a recipe
+GET {{RecipeAPI_HostAddress}}/api/recipes/1
+Accept: application/json
+
+### Get a missing recipe
+GET {{RecipeAPI_HostAddress}}/api/recipes/9999
+Accept: application/json
+
+### Create a recipe
+POST {{RecipeAPI_HostAddress}}/api/recipes
+Content-Type: application/json
+
+{
+  "name": "Simple banana pancakes",
+  "description": "A quick breakfast.",
+  "instructions": "Mash the banana, whisk with the eggs, and cook small pancakes in a warm pan.",
+  "preparationMinutes": 15,
+  "servings": 2,
+  "categoryId": 1,
+  "recipeIngredients": [
+    { "ingredientId": 30, "quantity": 1, "unit": "whole" },
+    { "ingredientId": 2, "quantity": 2, "unit": "whole" }
+  ]
+}
+
+### Replace a recipe and its ingredients
+PUT {{RecipeAPI_HostAddress}}/api/recipes/101
+Content-Type: application/json
+
+{
+  "name": "Banana pancakes",
+  "description": "An updated breakfast recipe.",
+  "instructions": "Mash the banana, mix the ingredients, and cook until golden.",
+  "preparationMinutes": 20,
+  "servings": 3,
+  "categoryId": 1,
+  "recipeIngredients": [
+    { "ingredientId": 30, "quantity": 2, "unit": "whole" },
+    { "ingredientId": 1, "quantity": 100, "unit": "g" }
+  ]
+}
+
+### Delete a recipe
+DELETE {{RecipeAPI_HostAddress}}/api/recipes/101
+
+### List recipe-ingredient associations
+GET {{RecipeAPI_HostAddress}}/api/recipe-ingredients
+Accept: application/json
+
+### Get an association
+GET {{RecipeAPI_HostAddress}}/api/recipe-ingredients/1/1
+Accept: application/json
+
+### Get a missing association
+GET {{RecipeAPI_HostAddress}}/api/recipe-ingredients/9999/9999
+Accept: application/json
+
+### Add an ingredient to a recipe
+POST {{RecipeAPI_HostAddress}}/api/recipe-ingredients
+Content-Type: application/json
+
+{
+  "recipeId": 1,
+  "ingredientId": 30,
+  "quantity": 1,
+  "unit": "whole"
+}
+
+### Update an ingredient in a recipe
+PUT {{RecipeAPI_HostAddress}}/api/recipe-ingredients/1/1
+Content-Type: application/json
+
+{
+  "quantity": 250,
+  "unit": "g"
+}
+
+### Remove an ingredient from a recipe
+DELETE {{RecipeAPI_HostAddress}}/api/recipe-ingredients/1/30
+
+### OpenAPI document
 GET {{RecipeAPI_HostAddress}}/openapi/v1.json
 Accept: application/json
-
-###

@@ -1,0 +1,45 @@
+<EditForm Model="Model" OnValidSubmit="SaveAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label" for="link-recipe">Recipe</label>
+            <InputSelect id="link-recipe" class="form-select" @bind-Value="Model.RecipeId" disabled="@(InitialValue is not null)">
+                <option value="0">Select a recipe</option>
+                @foreach (var recipe in Recipes)
+                {
+                    <option value="@recipe.Id">@recipe.Name</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.RecipeId)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="link-ingredient">Ingredient</label>
+            <InputSelect id="link-ingredient" class="form-select" @bind-Value="Model.IngredientId" disabled="@(InitialValue is not null)">
+                <option value="0">Select an ingredient</option>
+                @foreach (var ingredient in Ingredients)
+                {
+                    <option value="@ingredient.Id">@ingredient.Name</option>
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.IngredientId)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="link-quantity">Quantity</label>
+            <InputNumber id="link-quantity" class="form-control" @bind-Value="Model.Quantity" />
+            <ValidationMessage For="@(() => Model.Quantity)" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="link-unit">Unit</label>
+            <InputText id="link-unit" class="form-control" @bind-Value="Model.Unit" />
+            <ValidationMessage For="@(() => Model.Unit)" />
+        </div>
+    </div>
+    <div class="mt-3">
+        <button class="btn btn-primary" type="submit">@(InitialValue is null ? "Add association" : "Save association")</button>
+        @if (InitialValue is not null)
+        {
+            <button class="btn btn-outline-secondary ms-2" type="button" @onclick="CancelAsync">Cancel</button>
+        }
+    </div>
+</EditForm>
