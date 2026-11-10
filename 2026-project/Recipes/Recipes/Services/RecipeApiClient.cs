@@ -35,6 +35,12 @@ public sealed class RecipeApiClient(HttpClient http)
     public Task<IReadOnlyList<RecipeDto>> GetRecipesAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<RecipeDto>>("api/recipes", cancellationToken);
 
+    public Task<RecipePageResponse> GetRecipePageAsync(
+        int offset, int limit, string sort, bool descending, CancellationToken cancellationToken = default) =>
+        GetAsync<RecipePageResponse>(
+            $"api/recipes/page?offset={offset}&limit={limit}&sort={Uri.EscapeDataString(sort)}&descending={descending.ToString().ToLowerInvariant()}",
+            cancellationToken);
+
     public Task<RecipeDto> CreateRecipeAsync(RecipeWriteRequest request, CancellationToken cancellationToken = default) =>
         SendAsync<RecipeDto>(HttpMethod.Post, "api/recipes", request, cancellationToken);
 

@@ -9,9 +9,9 @@
     <p class="text-secondary mb-0">Create and maintain recipes and their ingredient lists.</p>
 </div>
 
-<ApiFeedback Error="@error" Success="@success" />
+<ApiFeedback Error="@(gridError ?? error)" Success="@success" />
 
-@if (categories is null || ingredients is null || recipes is null)
+@if (categories is null || ingredients is null)
 {
     <p>Loading recipes...</p>
 }
@@ -26,47 +26,41 @@ else
             }
             else
             {
-                <RecipeForm @key="selected?.Id" Categories="categories" Ingredients="ingredients"
+                <RecipeForm @key="(selected?.Id, formVersion)" Categories="categories" Ingredients="ingredients"
                             InitialValue="selected" OnSave="SaveAsync" OnCancel="CancelEdit" />
             }
         </div>
     </section>
 
     <h2 class="h4">All recipes</h2>
-    @if (recipes.Count == 0)
+    @if (gridFailed)
+    {
+        <button class="btn btn-outline-primary mb-3" @onclick="RefreshGridAsync">Retry loading recipes</button>
+    }
+    @if (gridLoaded && !gridFailed && gridEmpty)
     {
         <p class="text-secondary">No recipes yet.</p>
     }
-    else
-    {
-        <div class="table-responsive">
-            <table class="table table-striped align-middle">
-                <thead>
-                    <tr><th>Recipe</th><th>Category</th><th>Ingredients</th><th>Time</th><th>Servings</th><th class="text-end">Actions</th></tr>
-                </thead>
-                <tbody>
-                    @foreach (var recipe in recipes)
-                    {
-                        <tr>
-                            <td>
-                                <strong>@recipe.Name</strong>
-                                @if (!string.IsNullOrWhiteSpace(recipe.Description))
-                                {
-                                    <div class="small text-secondary">@recipe.Description</div>
-                                }
-                            </td>
-                            <td>@CategoryName(recipe.CategoryId)</td>
-                            <td>@IngredientSummary(recipe)</td>
-                            <td>@recipe.PreparationMinutes min</td>
-                            <td>@recipe.Servings</td>
-                            <td class="text-end text-nowrap">
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(recipe)">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteAsync(recipe)">Delete</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+    <div class="table-responsive">
+        <QuickGrid TGridItem="RecipeGridRow" @ref="grid" ItemsProvider="recipeProvider" Pagination="pagination" Class="table table-striped align-middle" ItemKey="@(row => row.Recipe.Id)">
+            <TemplateColumn Title="Recipe" SortBy="recipeNameSort" Sortable="true" Context="row">
+                <strong>@row.Recipe.Name</strong>
+                @if (!string.IsNullOrWhiteSpace(row.Recipe.Description))
+                {
+                    <div class="small text-secondary">@row.Recipe.Description</div>
+                }
+            </TemplateColumn>
+            <PropertyColumn Title="Category" Property="@(row => row.Category)" Sortable="true" />
+            <PropertyColumn Title="Ingredients" Property="@(row => row.Ingredients)" Sortable="true" />
+            <TemplateColumn Title="Time" SortBy="preparationTimeSort" Sortable="true" Context="row">
+                @row.Recipe.PreparationMinutes min
+            </TemplateColumn>
+            <PropertyColumn Title="Servings" Property="@(row => row.Recipe.Servings)" Sortable="true" />
+            <TemplateColumn Title="Actions" Class="text-end text-nowrap" Context="row">
+                <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(row.Recipe)">Edit</button>
+                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteAsync(row.Recipe)">Delete</button>
+            </TemplateColumn>
+        </QuickGrid>
+    </div>
+    <Paginator State="pagination" />
 }

@@ -13,10 +13,17 @@ public partial class RecipeForm
     [Parameter] public EventCallback OnCancel { get; set; }
 
     private RecipeFormModel Model { get; set; } = new();
+    private RecipeDto? previousInitialValue;
+    private bool initialized;
     private string SubmitText => InitialValue is null ? "Create recipe" : "Save recipe";
 
     protected override void OnParametersSet()
     {
+        if (initialized && ReferenceEquals(previousInitialValue, InitialValue))
+            return;
+
+        initialized = true;
+        previousInitialValue = InitialValue;
         Model = InitialValue is null
             ? new RecipeFormModel()
             : new RecipeFormModel

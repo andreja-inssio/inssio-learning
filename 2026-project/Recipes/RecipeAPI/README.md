@@ -34,6 +34,14 @@ deployment, set `ApiBaseUrl` to the actual HTTPS API address and configure
 `AllowedOrigins` on the API with the deployed client origin. Production keeps
 HTTPS redirection enabled.
 
+The Recipes page requests ten recipes at a time. Sorting and pagination are
+performed by the API and database, not on the full list in the browser.
+`GET /api/recipes/page` accepts zero-based `offset`, `limit` (1-100, default
+10), `sort` (`id`, `name`, `category`, `ingredients`, `time`, or `servings`)
+and `descending` (boolean, default `false`). It returns `items` and
+`totalCount`, and uses recipe ID to break sort ties. The existing
+`GET /api/recipes` remains available for clients needing the complete list.
+
 ## CRUD endpoints
 
 The API exposes `GET` collection and item routes, `POST` create routes, `PUT`

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.QuickGrid;
 using Microsoft.JSInterop;
 using RecipeShared;
 using Recipes.Models;
@@ -7,15 +8,25 @@ namespace Recipes.Pages;
 
 public partial class Recipes
 {
-    private IReadOnlyList<RecipeDto>? recipes;
     private IReadOnlyList<CategoryDto>? categories;
     private IReadOnlyList<IngredientDto>? ingredients;
+    private readonly PaginationState pagination = new() { ItemsPerPage = 10 };
+    private readonly GridSort<RecipeGridRow> recipeNameSort = GridSort<RecipeGridRow>.ByAscending(row => row.Recipe.Name);
+    private readonly GridSort<RecipeGridRow> preparationTimeSort = GridSort<RecipeGridRow>.ByAscending(row => row.Recipe.PreparationMinutes);
+    private GridItemsProvider<RecipeGridRow>? recipeProvider;
+    private QuickGrid<RecipeGridRow>? grid;
+    private bool gridLoaded;
+    private bool gridFailed;
+    private bool gridEmpty;
+    private int formVersion;
     private RecipeDto? selected;
     private string? error;
+    private string? gridError;
     private string? success;
 
     protected override async Task OnInitializedAsync()
     {
+        recipeProvider = LoadRecipesAsync;
         try
         {
             await LoadAsync();
@@ -28,20 +39,59 @@ public partial class Recipes
 
     private async Task LoadAsync()
     {
-        var recipesTask = Api.GetRecipesAsync();
         var categoriesTask = Api.GetCategoriesAsync();
         var ingredientsTask = Api.GetIngredientsAsync();
-        await Task.WhenAll(recipesTask, categoriesTask, ingredientsTask);
-        recipes = await recipesTask;
+        await Task.WhenAll(categoriesTask, ingredientsTask);
         categories = await categoriesTask;
         ingredients = await ingredientsTask;
     }
+
+    private async ValueTask<GridItemsProviderResult<RecipeGridRow>> LoadRecipesAsync(
+        GridItemsProviderRequest<RecipeGridRow> request)
+    {
+        var sort = request.GetSortByProperties().FirstOrDefault().PropertyName switch
+        {
+            null => "id",
+            "Recipe.Name" => "name",
+            "Category" => "category",
+            "Ingredients" => "ingredients",
+            "Recipe.PreparationMinutes" => "time",
+            "Recipe.Servings" => "servings",
+            var property => throw new InvalidOperationException($"Unsupported grid sort property: {property}.")
+        };
+        try
+        {
+            var page = await Api.GetRecipePageAsync(request.StartIndex, request.Count ?? pagination.ItemsPerPage,
+                sort, sort != "id" && !request.SortByAscending, request.CancellationToken);
+            request.CancellationToken.ThrowIfCancellationRequested();
+            var rows = page.Items.Select(recipe => new RecipeGridRow(
+                recipe, CategoryName(recipe.CategoryId), IngredientSummary(recipe))).ToArray();
+            var needsRender = !gridLoaded || gridFailed || gridEmpty != (page.TotalCount == 0);
+            gridLoaded = true;
+            gridFailed = false;
+            gridEmpty = page.TotalCount == 0;
+            gridError = null;
+            if (needsRender)
+                await InvokeAsync(StateHasChanged);
+            return GridItemsProviderResult.From(rows, page.TotalCount);
+        }
+        catch (Exception exception) when (exception is RecipeApiException or HttpRequestException)
+        {
+            gridFailed = true;
+            gridError = exception.Message;
+            success = null;
+            await InvokeAsync(StateHasChanged);
+            return GridItemsProviderResult.From(Array.Empty<RecipeGridRow>(), pagination.TotalItemCount ?? 0);
+        }
+    }
+
+    private Task RefreshGridAsync() => grid?.RefreshDataAsync() ?? Task.CompletedTask;
 
     private string CategoryName(int id) =>
         categories?.FirstOrDefault(category => category.Id == id)?.Name ?? "Unknown category";
 
     private string IngredientSummary(RecipeDto recipe) =>
-        string.Join(", ", recipe.RecipeIngredients.Select(row =>
+        string.Join(", ", recipe.RecipeIngredients.OrderBy(row => row.IngredientId).Select(row =>
         {
             var name = ingredients?.FirstOrDefault(item => item.Id == row.IngredientId)?.Name ?? "Unknown";
             return $"{name} ({row.Quantity} {row.Unit})";
@@ -76,6 +126,7 @@ public partial class Recipes
             if (selected is null)
             {
                 await Api.CreateRecipeAsync(request);
+                formVersion++;
                 success = "Recipe created.";
             }
             else
@@ -84,8 +135,8 @@ public partial class Recipes
                 success = "Recipe updated.";
             }
             selected = null;
-            await LoadAsync();
             error = null;
+            await RefreshGridAsync();
         }
         catch (Exception exception) when (exception is RecipeApiException or HttpRequestException)
         {
@@ -106,7 +157,7 @@ public partial class Recipes
                 selected = null;
             success = "Recipe deleted.";
             error = null;
-            await LoadAsync();
+            await RefreshGridAsync();
         }
         catch (Exception exception) when (exception is RecipeApiException or HttpRequestException)
         {
@@ -114,4 +165,6 @@ public partial class Recipes
             success = null;
         }
     }
+
+    private sealed record RecipeGridRow(RecipeDto Recipe, string Category, string Ingredients);
 }

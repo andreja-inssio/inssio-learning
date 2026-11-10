@@ -66,6 +66,26 @@ DELETE {{RecipeAPI_HostAddress}}/api/ingredients/31
 GET {{RecipeAPI_HostAddress}}/api/recipes
 Accept: application/json
 
+### Get a sorted page of recipes
+GET {{RecipeAPI_HostAddress}}/api/recipes/page?offset=10&limit=10&sort=name&descending=true
+Accept: application/json
+
+### Sort by the full ingredient summary
+GET {{RecipeAPI_HostAddress}}/api/recipes/page?offset=0&limit=10&sort=ingredients&descending=false
+Accept: application/json
+
+### Request a page beyond the end
+GET {{RecipeAPI_HostAddress}}/api/recipes/page?offset=2147483647&limit=10
+Accept: application/json
+
+### Reject invalid paging parameters
+GET {{RecipeAPI_HostAddress}}/api/recipes/page?offset=-1&limit=0&sort=unknown
+Accept: application/json
+
+### Reject malformed paging parameters
+GET {{RecipeAPI_HostAddress}}/api/recipes/page?offset=abc&descending=invalid
+Accept: application/problem+json
+
 ### Get a recipe
 GET {{RecipeAPI_HostAddress}}/api/recipes/1
 Accept: application/json

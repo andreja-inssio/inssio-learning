@@ -37,6 +37,7 @@ public interface IIngredientService
 public interface IRecipeService
 {
     Task<IReadOnlyList<RecipeDto>> GetAllAsync(CancellationToken cancellationToken);
+    Task<RecipePageResponse> GetPageAsync(int offset, int limit, string sort, bool descending, CancellationToken cancellationToken);
     Task<RecipeDto?> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<OperationResult<RecipeDto>> CreateAsync(RecipeRequest request, CancellationToken cancellationToken);
     Task<OperationResult<RecipeDto>> UpdateAsync(int id, RecipeRequest request, CancellationToken cancellationToken);
@@ -181,6 +182,57 @@ public sealed class RecipeService(RecipeDbContext db) : IRecipeService
             .OrderBy(recipe => recipe.Id)
             .ToListAsync(cancellationToken);
         return recipes.Select(ToDto).ToArray();
+    }
+
+    public async Task<RecipePageResponse> GetPageAsync(
+        int offset, int limit, string sort, bool descending, CancellationToken cancellationToken)
+    {
+        var query = db.Recipes.AsNoTracking();
+        var totalCount = await query.CountAsync(cancellationToken);
+        if (sort == "ingredients")
+        {
+            var ids = await db.Database.SqlQuery<int>($"""
+                SELECT r.Id AS [Value]
+                FROM dbo.Recipes AS r
+                OUTER APPLY (
+                    SELECT STRING_AGG(
+                        CONVERT(nvarchar(max), i.Name) COLLATE DATABASE_DEFAULT + N' (' +
+                        CONVERT(nvarchar(40), ri.Quantity) + N' ' + ri.Unit COLLATE DATABASE_DEFAULT + N')',
+                        N', ' COLLATE DATABASE_DEFAULT) WITHIN GROUP (ORDER BY ri.IngredientId) AS Summary
+                    FROM dbo.RecipeIngredients AS ri
+                    INNER JOIN dbo.Ingredients AS i ON i.Id = ri.IngredientId
+                    WHERE ri.RecipeId = r.Id
+                ) AS ingredients
+                ORDER BY CASE WHEN {descending} = 0 THEN ingredients.Summary END ASC,
+                         CASE WHEN {descending} = 1 THEN ingredients.Summary END DESC,
+                         r.Id ASC
+                OFFSET {offset} ROWS FETCH NEXT {limit} ROWS ONLY
+                """).ToListAsync(cancellationToken);
+            var items = await query.Where(recipe => ids.Contains(recipe.Id))
+                .Include(recipe => recipe.RecipeIngredients)
+                .ToDictionaryAsync(recipe => recipe.Id, cancellationToken);
+            return new RecipePageResponse(ids.Where(items.ContainsKey).Select(id => ToDto(items[id])).ToArray(), totalCount);
+        }
+
+        IOrderedQueryable<Recipe> ordered = (sort, descending) switch
+        {
+            ("name", false) => query.OrderBy(recipe => recipe.Name),
+            ("name", true) => query.OrderByDescending(recipe => recipe.Name),
+            ("category", false) => query.OrderBy(recipe => recipe.Category!.Name),
+            ("category", true) => query.OrderByDescending(recipe => recipe.Category!.Name),
+            ("time", false) => query.OrderBy(recipe => recipe.PreparationMinutes),
+            ("time", true) => query.OrderByDescending(recipe => recipe.PreparationMinutes),
+            ("servings", false) => query.OrderBy(recipe => recipe.Servings),
+            ("servings", true) => query.OrderByDescending(recipe => recipe.Servings),
+            ("id", false) => query.OrderBy(recipe => recipe.Id),
+            ("id", true) => query.OrderByDescending(recipe => recipe.Id),
+            _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, "Unsupported recipe sort.")
+        };
+        var recipes = await ordered.ThenBy(recipe => recipe.Id)
+            .Skip(offset).Take(limit)
+            .Include(recipe => recipe.RecipeIngredients)
+            .ToListAsync(cancellationToken);
+        return new RecipePageResponse(recipes.Select(ToDto).ToArray(), totalCount);
     }
 
     public async Task<RecipeDto?> GetByIdAsync(int id, CancellationToken cancellationToken)

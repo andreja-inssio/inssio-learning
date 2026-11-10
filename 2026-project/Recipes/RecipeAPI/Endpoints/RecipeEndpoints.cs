@@ -18,6 +18,34 @@ public static class RecipeEndpoints
                 TypedResults.Ok(await service.GetAllAsync(cancellationToken)))
             .WithName("GetRecipes").WithSummary("List recipes");
 
+        group.MapGet("/page", async Task<Results<Ok<RecipePageResponse>, ValidationProblem>> (
+            string? offset, string? limit, string? sort, string? descending,
+            IRecipeService service, CancellationToken cancellationToken) =>
+        {
+            var start = 0;
+            var size = 10;
+            var descendingSort = false;
+            var sortField = sort ?? "id";
+            var errors = new Dictionary<string, string[]>();
+            if (offset is not null && (!int.TryParse(offset, out start) || start < 0))
+                errors["offset"] = ["Offset must be an integer that is zero or greater."];
+            if (limit is not null && (!int.TryParse(limit, out size) || size is < 1 or > 100))
+                errors["limit"] = ["Limit must be an integer between 1 and 100."];
+            if (sortField is not ("id" or "name" or "category" or "ingredients" or "time" or "servings"))
+                errors["sort"] = ["Sort must be id, name, category, ingredients, time, or servings."];
+            if (descending is not null && !bool.TryParse(descending, out descendingSort))
+                errors["descending"] = ["Descending must be true or false."];
+            if (errors.Count > 0)
+                return TypedResults.ValidationProblem(errors);
+
+            return TypedResults.Ok(await service.GetPageAsync(
+                start, size, sortField, descendingSort, cancellationToken));
+        })
+            .WithName("GetRecipePage")
+            .WithSummary("List a page of recipes")
+            .WithDescription("Returns a sorted page and the total recipe count. Offset is zero-based; limit is 1 to 100.")
+            .ProducesValidationProblem();
+
         group.MapGet("/{id:int}", async Task<Results<Ok<RecipeDto>, NotFound>> (
             int id, IRecipeService service, CancellationToken cancellationToken) =>
         {
