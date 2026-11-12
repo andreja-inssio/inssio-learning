@@ -57,6 +57,7 @@ else
             </TemplateColumn>
             <PropertyColumn Title="Servings" Property="@(row => row.Recipe.Servings)" Sortable="true" />
             <TemplateColumn Title="Actions" Class="text-end text-nowrap" Context="row">
+                <a class="btn btn-sm btn-outline-secondary me-2" href="@($"/recipes/{row.Recipe.Id}/history")">History</a>
                 <button class="btn btn-sm btn-outline-primary" @onclick="() => Edit(row.Recipe)">Edit</button>
                 <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteAsync(row.Recipe)">Delete</button>
             </TemplateColumn>

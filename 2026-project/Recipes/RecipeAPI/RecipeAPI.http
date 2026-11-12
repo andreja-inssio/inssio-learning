@@ -1,4 +1,30 @@
 @RecipeAPI_HostAddress = http://localhost:5085
+@HistoryFrom = 2026-11-01T00:00:00Z
+@HistoryTo = 2026-12-01T00:00:00Z
+
+### All recipe versions (including current)
+GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=all
+
+### Recipe at a UTC instant
+GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=asof&from={{HistoryFrom}}
+
+### Overlapping versions, exclusive upper boundary
+GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=fromto&from={{HistoryFrom}}&to={{HistoryTo}}
+
+### Overlapping versions, includes versions starting at upper boundary
+GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=between&from={{HistoryFrom}}&to={{HistoryTo}}
+
+### Versions wholly contained in a range
+GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=containedin&from={{HistoryFrom}}&to={{HistoryTo}}
+
+### Missing recipe history
+GET {{RecipeAPI_HostAddress}}/api/recipes/2147483647/history
+
+### Invalid range (400)
+GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=between&from={{HistoryTo}}&to={{HistoryFrom}}
+
+### Missing required timestamp (400)
+GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=asof
 
 ### List categories
 GET {{RecipeAPI_HostAddress}}/api/categories

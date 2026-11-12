@@ -25,6 +25,7 @@ builder.Services.AddDbContext<RecipeDbContext>(options =>
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
+builder.Services.AddScoped<IRecipeHistoryService, RecipeHistoryService>();
 builder.Services.AddScoped<IRecipeIngredientService, RecipeIngredientService>();
 
 var app = builder.Build();
@@ -46,6 +47,7 @@ if (!app.Environment.IsDevelopment())
 app.MapCategoryEndpoints();
 app.MapIngredientEndpoints();
 app.MapRecipeEndpoints();
+app.MapRecipeHistoryEndpoints();
 app.MapRecipeIngredientEndpoints();
 
 var summaries = new[]

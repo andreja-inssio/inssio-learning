@@ -1,0 +1,71 @@
+@page "/recipes/{Id:int}/history"
+@inject RecipeApiClient Api
+@implements IDisposable
+
+<PageTitle>Recipe history</PageTitle>
+
+<h1>Recipe @Id history</h1>
+<p><a href="/recipes">Back to recipes</a></p>
+<p>Recipe fields only. Categories and ingredient assignments/quantities are not versioned.
+    All input and displayed timestamps are UTC.</p>
+
+<EditForm Model="search" OnSubmit="SearchAsync" class="card card-body mb-4">
+    <fieldset disabled="@busy">
+        <div class="mb-3">
+            <label for="history-mode" class="form-label">Temporal operator</label>
+            <InputSelect id="history-mode" class="form-select" @bind-Value="search.Mode">
+                <option value="all">TemporalAll - all versions</option>
+                <option value="asof">TemporalAsOf - at start timestamp</option>
+                <option value="fromto">TemporalFromTo - overlaps [start, end)</option>
+                <option value="between">TemporalBetween - also includes versions starting at end</option>
+                <option value="containedin">TemporalContainedIn - wholly inside [start, end]</option>
+            </InputSelect>
+        </div>
+        @if (search.Mode != "all")
+        {
+            <div class="mb-3">
+                <label for="history-from" class="form-label">@(search.Mode == "asof" ? "As of (UTC)" : "Start (UTC)")</label>
+                <InputDate id="history-from" Type="InputDateType.DateTimeLocal" class="form-control"
+                           step="0.0000001" @bind-Value="search.From" />
+                <ValidationMessage For="@(() => search.From)" />
+            </div>
+        }
+        @if (search.Mode is "fromto" or "between" or "containedin")
+        {
+            <div class="mb-3">
+                <label for="history-to" class="form-label">End (UTC)</label>
+                <InputDate id="history-to" Type="InputDateType.DateTimeLocal" class="form-control"
+                           step="0.0000001" @bind-Value="search.To" />
+                <ValidationMessage For="@(() => search.To)" />
+            </div>
+        }
+        <button type="submit" class="btn btn-primary">Search history</button>
+    </fieldset>
+</EditForm>
+
+<ApiFeedback Error="@error" />
+@if (busy)
+{
+    <p role="status">Loading recipe history...</p>
+}
+else if (versions is { Count: 0 })
+{
+    <p>No recipe versions match these timestamps.</p>
+}
+else if (versions is not null)
+{
+    <p>@versions.Count version(s), oldest first. Validity periods are start-inclusive and end-exclusive.</p>
+    @foreach (var version in versions)
+    {
+        <article class="card card-body mb-3">
+            <h2 class="h5">@version.Name</h2>
+            <p class="small">
+                <strong>From:</strong> @version.ValidFrom.ToString("O")
+                <strong>To:</strong> @(version.ValidTo.Year == 9999 ? "Current" : version.ValidTo.ToString("O"))
+            </p>
+            <p>@version.Description</p>
+            <p style="white-space: pre-wrap">@version.Instructions</p>
+            <p class="mb-0">@version.PreparationMinutes minutes | @version.Servings servings | Category ID: @version.CategoryId</p>
+        </article>
+    }
+}

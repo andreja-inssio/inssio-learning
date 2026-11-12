@@ -66,3 +66,40 @@ After changing the model or seed data, generate and inspect a new migration:
 dotnet ef migrations add <MigrationName> --project .\RecipeAPI
 dotnet ef database update --project .\RecipeAPI
 ```
+
+## Recipe history
+
+Open `/recipes/{id}/history` in the Blazor app, or use the History link in the
+recipe list. The page shows recipe fields and UTC validity periods, including
+current and deleted versions. Ingredient rows and category names are not
+historical; only the category ID stored on the recipe is shown.
+
+`GET /api/recipes/{id}/history?mode=all` supports:
+
+| Mode | EF Core operator | Parameters and behavior |
+|---|---|---|
+| `all` (default) | `TemporalAll` | All versions, oldest first |
+| `asof` | `TemporalAsOf` | `from`: version valid at that instant |
+| `fromto` | `TemporalFromTo` | `from`, `to`: overlapping versions, excluding versions starting exactly at `to` |
+| `between` | `TemporalBetween` | Like FromTo, but includes versions starting exactly at `to` |
+| `containedin` | `TemporalContainedIn` | Versions starting and ending inside the inclusive bounds |
+
+Use ISO 8601 timestamps with `Z` or an explicit offset (URL-encode `+` as `%2B`).
+The page's InputDate date/time fields are interpreted as UTC, not browser-local
+time. AsOf uses the start field; range searches require start before end.
+Invalid modes/ranges return `400`; a recipe with no temporal records returns
+`404`; a valid search with no matching versions returns `200` and `[]`.
+Malformed date values return `400`. SQL Server excludes zero-duration versions.
+
+To deliberately generate twenty additional history versions for one existing
+recipe, start the API and run from the solution directory:
+
+```powershell
+.\RecipeAPI\Scripts\Add-RecipeHistory.ps1 -RecipeId 1
+```
+
+This makes twenty separate PUT requests, incrementing preparation minutes by
+one each time and preserving the other recipe data. It changes the selected
+recipe permanently and is never run automatically on startup. Re-running adds
+another twenty versions; do not run it while someone else is editing that recipe.
+The script checks the version count increased by exactly twenty.

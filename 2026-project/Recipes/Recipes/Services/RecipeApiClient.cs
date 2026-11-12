@@ -44,6 +44,14 @@ public sealed class RecipeApiClient(HttpClient http)
     public Task<RecipeDto> CreateRecipeAsync(RecipeWriteRequest request, CancellationToken cancellationToken = default) =>
         SendAsync<RecipeDto>(HttpMethod.Post, "api/recipes", request, cancellationToken);
 
+    public Task<IReadOnlyList<RecipeHistoryDto>> GetRecipeHistoryAsync(
+        int id, string mode, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<RecipeHistoryDto>>(
+            $"api/recipes/{id}/history?mode={Uri.EscapeDataString(mode)}"
+            + $"&from={Uri.EscapeDataString(from.ToString("O", System.Globalization.CultureInfo.InvariantCulture))}"
+            + $"&to={Uri.EscapeDataString(to.ToString("O", System.Globalization.CultureInfo.InvariantCulture))}",
+            cancellationToken);
+
     public Task<RecipeDto> UpdateRecipeAsync(int id, RecipeWriteRequest request, CancellationToken cancellationToken = default) =>
         SendAsync<RecipeDto>(HttpMethod.Put, $"api/recipes/{id}", request, cancellationToken);
 
