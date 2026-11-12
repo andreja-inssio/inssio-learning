@@ -26,6 +26,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
 builder.Services.AddScoped<IRecipeService, RecipeService>();
 builder.Services.AddScoped<IRecipeHistoryService, RecipeHistoryService>();
+builder.Services.AddScoped<IRecipeReportService, RecipeReportService>();
 builder.Services.AddScoped<IRecipeIngredientService, RecipeIngredientService>();
 
 var app = builder.Build();
@@ -48,6 +49,7 @@ app.MapCategoryEndpoints();
 app.MapIngredientEndpoints();
 app.MapRecipeEndpoints();
 app.MapRecipeHistoryEndpoints();
+app.MapRecipeReportEndpoints();
 app.MapRecipeIngredientEndpoints();
 
 var summaries = new[]

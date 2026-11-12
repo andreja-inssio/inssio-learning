@@ -2,6 +2,27 @@
 @HistoryFrom = 2026-11-01T00:00:00Z
 @HistoryTo = 2026-12-01T00:00:00Z
 
+### Shopping list: flatten selected recipes and combine quantities by ingredient/unit
+GET {{RecipeAPI_HostAddress}}/api/reports/shopping-list?recipeIds=1&recipeIds=2
+
+### Duplicate selection counts once (same result as recipe 1 alone)
+GET {{RecipeAPI_HostAddress}}/api/reports/shopping-list?recipeIds=1&recipeIds=1
+
+### Missing selection (400)
+GET {{RecipeAPI_HostAddress}}/api/reports/shopping-list
+
+### Invalid selection (400)
+GET {{RecipeAPI_HostAddress}}/api/reports/shopping-list?recipeIds=abc&recipeIds=0
+
+### Missing referenced recipe (400)
+GET {{RecipeAPI_HostAddress}}/api/reports/shopping-list?recipeIds=2147483647
+
+### Category statistics: GroupBy with count and average
+GET {{RecipeAPI_HostAddress}}/api/reports/category-statistics
+
+### Ingredient usage: left join retains unused ingredients
+GET {{RecipeAPI_HostAddress}}/api/reports/ingredient-usage
+
 ### All recipe versions (including current)
 GET {{RecipeAPI_HostAddress}}/api/recipes/1/history?mode=all
 

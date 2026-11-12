@@ -11,10 +11,32 @@ public partial class Ingredients
     private IngredientDto? selected;
     private string? error;
     private string? success;
+    private IReadOnlyList<IngredientUsageDto>? usage;
+    private string? usageError;
+    private bool unusedOnly = true;
 
     protected override Task OnInitializedAsync() => LoadAsync();
 
     private async Task LoadAsync()
+    {
+        await Task.WhenAll(LoadIngredientsAsync(), LoadUsageAsync());
+    }
+
+    private async Task LoadUsageAsync()
+    {
+        usage = null;
+        usageError = null;
+        try
+        {
+            usage = await Api.GetIngredientUsageAsync();
+        }
+        catch (Exception exception) when (exception is RecipeApiException or HttpRequestException)
+        {
+            usageError = exception.Message;
+        }
+    }
+
+    private async Task LoadIngredientsAsync()
     {
         try
         {

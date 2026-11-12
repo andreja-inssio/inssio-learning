@@ -42,6 +42,37 @@ and `descending` (boolean, default `false`). It returns `items` and
 `totalCount`, and uses recipe ID to break sort ties. The existing
 `GET /api/recipes` remains available for clients needing the complete list.
 
+## Reports and LINQ examples
+
+Open **Reports / Shopping list** (`/reports`) in the Blazor app:
+
+- Select recipes and generate a shopping list. `SelectMany` flattens their
+  ingredient rows, then `GroupBy` sums quantities by ingredient and unit.
+  Units are not converted: grams and tablespoons remain separate rows.
+  Each selected recipe contributes its stored quantities once; servings are
+  not rescaled. Changing the selection clears the previous result.
+- Category statistics use `GroupBy` to calculate recipe counts and average
+  preparation minutes. Categories without recipes are omitted.
+
+On **Ingredients** (`/ingredients`), the ingredient-usage section uses
+`GroupJoin` followed by `SelectMany` and `DefaultIfEmpty` for a SQL left join.
+It initially shows unused ingredients; clear the checkbox to see all recipe
+assignments. Unused rows have null recipe fields, not fabricated recipe IDs.
+Usage refreshes after ingredient create, edit, or delete.
+
+All three queries execute on SQL Server in `Services/RecipeReportService.cs`.
+They are read-only and do not require a migration.
+
+| GET endpoint | Response |
+|---|---|
+| `/api/reports/shopping-list?recipeIds=1&recipeIds=2` | Ingredient ID/name, combined quantity, unit |
+| `/api/reports/category-statistics` | Category ID/name, recipe count, average minutes |
+| `/api/reports/ingredient-usage` | Ingredient ID/name and nullable recipe ID/name |
+
+Shopping-list IDs must be positive integers and reference existing recipes;
+missing, malformed, or nonexistent IDs return `400` validation details.
+Duplicate IDs count once. Valid reports with no rows return `200` and `[]`.
+
 ## CRUD endpoints
 
 The API exposes `GET` collection and item routes, `POST` create routes, `PUT`

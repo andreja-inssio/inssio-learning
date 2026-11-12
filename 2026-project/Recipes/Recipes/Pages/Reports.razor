@@ -1,0 +1,97 @@
+@page "/reports"
+@inject RecipeApiClient Api
+@implements IDisposable
+
+<PageTitle>Reports / Shopping list</PageTitle>
+
+<h1>Reports / Shopping list</h1>
+<p>Explore recipe ingredients with SelectMany and category statistics with GroupBy.
+    <a href="/ingredients#ingredient-usage">View ingredient usage (GroupJoin)</a>.</p>
+
+<ApiFeedback Error="@loadError" />
+@if (loading)
+{
+    <p role="status">Loading reports...</p>
+}
+else if (loadError is not null)
+{
+    <button class="btn btn-outline-primary" @onclick="LoadAsync">Retry loading reports</button>
+}
+else
+{
+    <section class="card card-body mb-4">
+        <h2 class="h4">Shopping list</h2>
+        <p>Select recipes to combine their ingredient quantities. Different units remain separate; no conversion is performed.</p>
+        @if (recipes.Count == 0)
+        {
+            <p>No recipes available.</p>
+        }
+        else
+        {
+            <fieldset disabled="@generating" class="mb-3">
+                <legend class="h6">Recipes</legend>
+                <div class="row">
+                    @foreach (var recipe in recipes)
+                    {
+                        <div class="col-md-6 col-xl-4">
+                            <label class="form-check">
+                                <input type="checkbox" class="form-check-input" checked="@selectedIds.Contains(recipe.Id)"
+                                       @onchange="() => ToggleRecipe(recipe.Id)" />
+                                <span class="form-check-label">@recipe.Name</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+            </fieldset>
+            <button class="btn btn-primary mb-3" disabled="@(generating || selectedIds.Count == 0)"
+                    @onclick="GenerateAsync">Generate shopping list</button>
+        }
+        <ApiFeedback Error="@shoppingError" />
+        @if (generating)
+        {
+            <p role="status">Combining ingredients...</p>
+        }
+        else if (shoppingList is { Count: 0 })
+        {
+            <p>No ingredients for the selected recipes.</p>
+        }
+        else if (shoppingList is not null)
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <caption>Combined ingredients for @selectedIds.Count selected recipe(s)</caption>
+                    <thead><tr><th scope="col">Ingredient</th><th scope="col">Quantity</th><th scope="col">Unit</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in shoppingList)
+                        {
+                            <tr><td>@item.IngredientName</td><td>@item.Quantity</td><td>@item.Unit</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section>
+        <h2 class="h4">Category statistics</h2>
+        <p>GroupBy computes recipe counts and average preparation minutes. Categories without recipes are omitted.</p>
+        @if (statistics.Count == 0)
+        {
+            <p>No category statistics yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead><tr><th scope="col">Category</th><th scope="col">Recipes</th><th scope="col">Average minutes</th></tr></thead>
+                    <tbody>
+                        @foreach (var category in statistics)
+                        {
+                            <tr><td>@category.CategoryName</td><td>@category.RecipeCount</td><td>@category.AverageMinutes.ToString("0.##")</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+}

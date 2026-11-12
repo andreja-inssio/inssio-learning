@@ -9,6 +9,57 @@
     <p class="text-secondary mb-0">Manage the ingredients used in recipes.</p>
 </div>
 
+<section id="ingredient-usage" class="mt-4">
+    <h2 class="h4">Ingredient usage</h2>
+    <p>GroupJoin with SelectMany and DefaultIfEmpty keeps unused ingredients in the results.</p>
+    <ApiFeedback Error="@usageError" />
+    @if (usageError is not null)
+    {
+        <button class="btn btn-outline-primary" @onclick="LoadUsageAsync">Retry loading usage</button>
+    }
+    else if (usage is null)
+    {
+        <p role="status">Loading ingredient usage...</p>
+    }
+    else
+    {
+        <label class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" @bind="unusedOnly" />
+            <span class="form-check-label">Show unused ingredients only</span>
+        </label>
+        @if (!usage.Any(item => !unusedOnly || item.RecipeId is null))
+        {
+            <p>@(unusedOnly ? "No unused ingredients." : "No ingredients yet.")</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead><tr><th scope="col">Ingredient</th><th scope="col">Recipe</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in usage.Where(item => !unusedOnly || item.RecipeId is null))
+                        {
+                            <tr>
+                                <td>@item.IngredientName</td>
+                                <td>
+                                    @if (item.RecipeId is not null)
+                                    {
+                                        <a href="@($"/recipes/{item.RecipeId}/history")">@item.RecipeName</a>
+                                    }
+                                    else
+                                    {
+                                        <span>Unused</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</section>
+
 <ApiFeedback Error="@error" Success="@success" />
 
 <div class="row g-4">

@@ -35,6 +35,18 @@ public sealed class RecipeApiClient(HttpClient http)
     public Task<IReadOnlyList<RecipeDto>> GetRecipesAsync(CancellationToken cancellationToken = default) =>
         GetAsync<IReadOnlyList<RecipeDto>>("api/recipes", cancellationToken);
 
+    public Task<IReadOnlyList<ShoppingListItemDto>> GetShoppingListAsync(
+        IEnumerable<int> recipeIds, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<ShoppingListItemDto>>(
+            "api/reports/shopping-list?" + string.Join("&", recipeIds.Distinct().Order().Select(id => $"recipeIds={id}")),
+            cancellationToken);
+
+    public Task<IReadOnlyList<CategoryStatisticsDto>> GetCategoryStatisticsAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<CategoryStatisticsDto>>("api/reports/category-statistics", cancellationToken);
+
+    public Task<IReadOnlyList<IngredientUsageDto>> GetIngredientUsageAsync(CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<IngredientUsageDto>>("api/reports/ingredient-usage", cancellationToken);
+
     public Task<RecipePageResponse> GetRecipePageAsync(
         int offset, int limit, string sort, bool descending, CancellationToken cancellationToken = default) =>
         GetAsync<RecipePageResponse>(
